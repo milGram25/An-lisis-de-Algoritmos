@@ -1,10 +1,30 @@
 #include <iostream>
+#include <vector>
+#include <ctime>
 using namespace std;
 
+int entrada_numero(){
+    char entrada;
+    cin >> entrada;
+    if (isdigit(entrada)) {
+        return entrada - '0';
+    }
+    return -1;
+}
+
+void mostrar_arreglo(vector<int> arr, int n){
+    cout << "Arreglo generado: ";
+    for (int i = 0; i < n; i++) {
+        cout << arr[i] << " ";
+    }
+    cout << endl;
+}
+
 //Algoritmo QuickSort para ordenar el arreglo
-void quicksort(int arr[], int n) {
+vector<int> quicksort(vector<int> arr, int n) {
     int pivote = arr[0];
-    int menores[n], mayores[n];
+    vector<int> menores(n);
+    vector<int> mayores(n);
     int cuenta_menores = 0;
     int cuenta_mayores = 0;
 
@@ -21,10 +41,10 @@ void quicksort(int arr[], int n) {
 
     // Llamadas recursivas para ordenar los subarreglos
     if(cuenta_menores > 1) {
-        quicksort(menores, cuenta_menores);
+        menores =quicksort(menores, cuenta_menores);
     }
     if(cuenta_mayores > 1) {
-        quicksort(mayores, cuenta_mayores);
+        mayores = quicksort(mayores, cuenta_mayores);
     }
 
     // Combinar los resultados
@@ -39,20 +59,53 @@ void quicksort(int arr[], int n) {
         arr[index] = mayores[i];
         index++;
     }
+
+    return arr;
 }
 
-void busqueda_binaria(int arr[], int n){
+vector<int> generar_arreglo(){
+    cout << "Ingrese el numero de elementos: ";
+    int n = entrada_numero();
+    if (n <= 0) {
+        cout << "Entrada invalida. Usando valor por defecto de 10.\n";
+        n = 10;
+    }
+    vector<int> arr(n);
+    for (int i = 0; i < n; i++) {
+        arr[i] = rand() % 100; // Numeros aleatorios entre 0 y 99
+    }
+    mostrar_arreglo(arr, n);
+    return arr;
+}
+
+vector<int> iniciar_quicksort(vector<int> arr, int n){
+    arr = quicksort(arr, n);
+    cout << "Arreglo ordenado: ";
+    for(int i = 0; i < n; i++) {
+        cout << arr[i] << " ";
+    }
+    cout << endl;
+    return arr;
+}
+
+void busqueda_binaria(vector<int> arr, int n){
     int izquierda = 0;
     int derecha = n-1;
     cout << "\nIngrese el numero a buscar: ";
-    int objetivo;
-    cin >> objetivo;
+    int objetivo = entrada_numero();
+
+    if (objetivo == -1) {
+        cout << "Entrada invalida.\n";
+        return;
+    }
+    
     int resultado = -1;
 
     while (izquierda <= derecha) {
         int medio = izquierda + (derecha - izquierda) / 2;
         if (arr[medio] == objetivo) {
             resultado = medio; // Elemento encontrado
+            break;
         }
         if (arr[medio] < objetivo) {
             izquierda = medio + 1; // Buscar en la mitad derecha
@@ -62,14 +115,14 @@ void busqueda_binaria(int arr[], int n){
     }
 
     if (resultado != -1) {
-        cout << "Elemento encontrado en el índice: " << resultado << endl;
+        cout << "Elemento encontrado en la posicion: " << resultado+1 << endl;
     } else {
         cout << "Elemento no encontrado." << endl;
     }
     return;
 }
 
-void menu(int arr[], int n){
+void menu(vector<int> arr, int n){
     int opcion;
     do{
         cout << "Menu de opciones:\n";
@@ -83,8 +136,10 @@ void menu(int arr[], int n){
                 busqueda_binaria(arr, n);
                 break;
             case 2:
-                //Aun no funciona, no lo elijan
                 cout << "Opcion 2 seleccionada: Nuevo arreglo\n";
+                arr = generar_arreglo();
+                n = arr.size();
+                iniciar_quicksort(arr, n);
                 break;
             case 3:
                 cout << "Saliendo del programa.\n";
@@ -95,28 +150,14 @@ void menu(int arr[], int n){
     } while (true);
 }
 int main(){
-    // Generar arreglo de numeros
-    cout << "Ingrese el numero de elementos: ";
-    int n;
-    cin >> n;
-    int arr[n];
-    for (int i = 0; i < n; i++) {
-        arr[i] = rand() % 100; // Numeros aleatorios entre 0 y 99
-    }
+    srand(time(0)); // Semilla para numeros aleatorios
 
-    // Mostrar arreglo generado
-    cout << "Arreglo generado: ";
-    for (int i = 0; i < n; i++) {
-        cout << arr[i] << " ";
-    }
-    cout << endl;
+    // Generar arreglo de numeros
+    vector<int> arr = generar_arreglo();
+    int n = arr.size();
 
     //Ordenar arreglo usando QuickSort
-    quicksort(arr, n);
-    cout << "Arreglo ordenado: ";
-    for(int i = 0; i < n; i++) {
-        cout << arr[i] << " ";
-    }
+    arr = iniciar_quicksort(arr, n);
 
     //Menu de opciones
     menu(arr, n);
