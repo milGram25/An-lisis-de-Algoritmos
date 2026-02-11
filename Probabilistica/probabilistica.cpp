@@ -63,6 +63,7 @@ bool solveNQueens(int n) {
 
 int main() {
     int queens;
+    cout << "Sweet spot between 25 and 30 queens is recommended for a good balance of challenge and performance." << endl;
     cout << "Enter the number of queens: ";
     cin >> queens;
 
