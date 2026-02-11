@@ -1,6 +1,8 @@
 #include <iostream>
 #include <vector>
 #include <random>
+#include <algorithm>
+#include <numeric>
 
 using namespace std;
 
@@ -30,48 +32,57 @@ bool isSafe(const vector<int>& board, int row, int col) {
     return true;
 }
 
-bool placeQueens(vector<int>& board, int row, int n) {
-    for (int col = 0; col < n; col++) {
-        if (isSafe(board, row, col)) {
-            board[row] = col; // Place queen
-            if (row == n - 1 || placeQueens(board, row + 1, n)) {
-                return true; // Move to next row
+bool placeQueensRandomly(vector<int>& board, int n, mt19937& g) {
+    fill(board.begin(), board.end(), -1); // Clear the board for a new try
+
+    for (int row = 0; row < n; row++) {
+        vector<int> safeColumns;
+
+        // Find all safe columns for the current row
+        for (int col = 0; col < n; col++) {
+            if (isSafe(board, row, col)) {
+                safeColumns.push_back(col);
             }
-            board[row] = -1; // Backtrack
         }
+
+        // If no safe columns are left, this "try" is a failure
+        if (safeColumns.empty()) {
+            return false; 
+        }
+
+        // Pick one safe column at random
+        uniform_int_distribution<int> dist(0, safeColumns.size() - 1);
+        board[row] = safeColumns[dist(g)];
     }
-    return false; // No valid position found
+    return true; // Successfully placed N queens
 }
 
-bool solveNQueens(int n) {
-    vector<int> board (n, -1); // Initialize the board with -1 (no queen placed)
-    srand(time(0)); // Seed the random number generator
+bool solveNQueens(int n, int maxTries) {
+    vector<int> board(n, -1);
+    random_device rd;
+    mt19937 g(rd());
 
     int attempts = 0;
-    while(attempts < 500){
+    while (attempts < maxTries) {
         attempts++;
-        if(placeQueens(board, 0, n)) {
+        if (placeQueensRandomly(board, n, g)) {
+            cout << "Solution found on attempt #" << attempts << "!" << endl;
             printBoard(board);
             return true;
         }
     }
-    cout << "No solution found after " << attempts << " attempts." << endl;
+
+    cout << "Reached limit of " << maxTries << " tries without a solution." << endl;
     return false;
 }
 
-
-
 int main() {
-    int queens;
-    cout << "Sweet spot between 25 and 30 queens is recommended for a good balance of challenge and performance." << endl;
+    int queens, maxTries;
     cout << "Enter the number of queens: ";
     cin >> queens;
+    cout << "Enter the maximum number of tries: ";
+    cin >> maxTries;
 
-    if(solveNQueens(queens)){
-        cout << "Solution found!" << endl;
-    } else {
-        cout << "No solution exists for " << queens << " queens." << endl;
-    }
-
+    solveNQueens(queens, maxTries);
     return 0;
 }
