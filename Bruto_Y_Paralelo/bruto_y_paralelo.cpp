@@ -11,6 +11,7 @@ using namespace std;
 
 atomic<int> encontrado(-1);
 
+//Validacion de entrada de digito
 int entrada(){
     char input;
     cin >> input;
@@ -20,16 +21,19 @@ int entrada(){
     return -1;
 }
 
+//Temporizador de ejecución
 auto iniciarTemporizador(){
     return chrono::high_resolution_clock::now();
 }
 
+//Calculo del tiempo de ejecución
 void tiempoEjecución(chrono::high_resolution_clock::time_point comienzo){
     auto terminar = chrono::high_resolution_clock::now();
     auto duracion = chrono::duration_cast<chrono::microseconds>(terminar - comienzo);
     cout << "Tiempo de ejecución: " << duracion.count() << " microsegundos" << endl;
 }
 
+//Funcion de busqueda para el algoritmo paralelo
 void buscar(int pin, int inicio, int final, promise<int>& resultado){
     for (int i = inicio; i < final; i++){
         if(encontrado.load()) return;
@@ -42,8 +46,9 @@ void buscar(int pin, int inicio, int final, promise<int>& resultado){
     }
 }
 
+//Funcion del algoritmo paralelo
 void paralelo(int pin) {
-    int hilos = thread::hardware_concurrency(); // Use all available cores
+    int hilos = thread::hardware_concurrency(); // Usar el número de hilos disponibles en el sistema
     int rango = 10000 / hilos;
     vector<promise<int>> promesas(hilos);
     vector<future<int>> futuros;
@@ -51,6 +56,7 @@ void paralelo(int pin) {
 
     auto comienzo = iniciarTemporizador();
 
+    // Crear hilos para buscar en rangos específicos
     for (int i = 0; i < hilos; i++) {
         int inicio = i * rango;
         int final = (i == hilos - 1) ? 10000 : (i + 1) * rango;
@@ -58,10 +64,12 @@ void paralelo(int pin) {
         trabajadores.emplace_back(buscar, pin, inicio, final, ref(promesas[i]));
     }
 
+    // Esperar a que todos los hilos terminen
     for (auto& t : trabajadores) {
         if (t.joinable()) t.join();
     }
 
+    // Verificar si se encontró el pin
     if (encontrado.load() != -1) {
         cout << "Pin encontrado (Paralelo): " << encontrado.load() << endl;
     }
@@ -70,12 +78,14 @@ void paralelo(int pin) {
     tiempoEjecución(comienzo);
 }
 
+//Funcion del algoritmo de fuerza bruta
 void bruto(int pin){ 
     int intentos = 0;
     int adivinanza = 0;
 
     auto comienzo = iniciarTemporizador();   
     
+    //Iterar a través de todas las posibles combinaciones de 4 dígitos (0000 a 9999)
     for (int i = 0; i <= 9999; i++) {
         intentos++;     
         adivinanza = i;
@@ -89,6 +99,7 @@ void bruto(int pin){
     tiempoEjecución(comienzo);
 }
 
+//Funcion del menu para ejecutar ambos algoritmos
 void menu(){
     int pin = rand() % 10000;
 
@@ -97,12 +108,9 @@ void menu(){
 
     cout << "Algoritmo de fuerza bruta" << endl;
     bruto(pin);
-
-    
 }
 
 int main(){
     srand(time(0));
-
     menu();
 }
